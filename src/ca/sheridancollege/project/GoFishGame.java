@@ -11,10 +11,55 @@ public class GoFishGame extends Game {
         super(name);
         this.players = players;
         this.deck = new GoFishDeck();
+        
+    }
+    
+    public void initializePlayers() {
+    players.clear();
+    Scanner scanner = new Scanner(System.in);
+    int numPlayers;
+
+    // Ensure valid player count (2-5)
+    while (true) {
+        System.out.print("Enter the number of players (2-5): ");
+        
+        if (!scanner.hasNextInt()) {
+            System.out.println("Invalid input. Please enter a number between 2 and 5.");
+            scanner.next(); // Consume invalid input
+            continue; // Restart the loop
+        }
+
+        numPlayers = scanner.nextInt();
+        scanner.nextLine(); // Consume newline character
+
+        if (numPlayers >= 2 && numPlayers <= 5) {
+            break; // Valid input, exit the loop
+        } else {
+            System.out.println("Invalid input. Please enter a number between 2 and 5."); // Handle out-of-range numbers
+        }
     }
 
+    // Create players dynamically
+    for (int i = 1; i <= numPlayers; i++) {
+        System.out.print("Enter name for Player " + i + ": ");
+        String playerName = scanner.nextLine().trim();
+        players.add(new GoFishPlayer(playerName));
+    }
+
+    // Debugging: Print the list of players
+    System.out.println("Players in the game: " + players.size());
+    for (GoFishPlayer p : players) {
+        System.out.println("Player: " + p.getName());
+    }
+
+    System.out.println("\nPlayers set! Starting the game...\n");
+}
+    
+   
+
+
     // Deal initial cards to each player based on the number of players
-    private void dealInitialCards() {
+    public void dealInitialCards() {
         int cardsToDeal = players.size() == 2 ? 7 : 5;
         for (GoFishPlayer player : players) {
             for (int i = 0; i < cardsToDeal; i++) {
@@ -24,7 +69,7 @@ public class GoFishGame extends Game {
     }
 
     // Check if a player has any books (four cards of the same rank)
-    private void checkForBooks(GoFishPlayer player) {
+    public void checkForBooks(GoFishPlayer player) {
         ArrayList<GoFishCard> hand = player.getHand();
         int[] rankCount = new int[13];
 
@@ -57,19 +102,23 @@ public class GoFishGame extends Game {
     }
 
     // Validate if the entered rank is valid (e.g., 2-10, J, Q, K, A)
-    private boolean isValidRank(String rank) {
+    public boolean isValidRank(String rank) {
         return rank.matches("[2-9]|10|[JQKA]");
     }
 
     @Override
     public void play() {
         // Deal initial cards to all players
+        initializePlayers();//Dynamically create players
         dealInitialCards();
         Scanner scanner = new Scanner(System.in);
         boolean gameOver = false;
+        int roundCounter = 0;//This will track the no. of rounds (Chnage made in deliverable 2)
 
         // Main game loop
-        while (!gameOver) {
+        //I have added roundCounter < 4 so that the game stops after 4 rounds
+        while (!gameOver && roundCounter < 4) {
+            System.out.println("\n--- Round " + (roundCounter + 1) + " ---");
             for (GoFishPlayer player : players) {
                 System.out.println(player.getName() + ", it's your turn.");
                 String rank;
@@ -123,15 +172,20 @@ public class GoFishGame extends Game {
                     System.out.println(p.getName() + " hand size: " + p.getHandSize() + ", books: " + p.getBookCount());
                 }
             }
+            
+            roundCounter++;//This will increment round count (change made in deliverable 2)
         }
         scanner.close();
-        declareWinner();
+        System.out.println("\nGame Over after 4 rounds!");
+        //declareWinner();
     }
 
     @Override
     public void declareWinner() {
-        GoFishPlayer winner = players.get(0);
-        int maxBooks = 0;
+        //GoFishPlayer winner = players.get(0);
+        //int maxBooks = 0;
+        GoFishPlayer winner = null;
+        int maxBooks=-1 ;//Start with -1 to ensure any player's book count will be higher
         
         // Determine the player with the most books
         for (GoFishPlayer player : players) {
@@ -141,6 +195,13 @@ public class GoFishGame extends Game {
                 winner = player;
             }
         }
+        //System.out.println("Winner is " + winner.getName() + " with " + maxBooks + " books!");
+    /// If no player has completed any books, it's a tie
+    if (maxBooks == 0) {
+        System.out.println("Game ends in a tie. No one has completed any books.");
+    } else {
+        // Handle case where a player has completed the most books
         System.out.println("Winner is " + winner.getName() + " with " + maxBooks + " books!");
     }
+}
 }
